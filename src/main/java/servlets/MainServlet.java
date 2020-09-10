@@ -6,8 +6,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns = {"/main-servlet"})
@@ -34,9 +38,8 @@ public class MainServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String uri = req.getRequestURI();
-        String params = formatParams(req);
-        resp.getWriter().write("doPost\n" + "URI: " + uri + "\n Params:\n" + params + "\n");
+        String test = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        System.out.println(test);
     }
 
     private String formatParams(HttpServletRequest req) {
