@@ -1,5 +1,9 @@
 package servlets;
 
+import org.json.HTTP;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -8,10 +12,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Set;
+import java.io.PrintWriter;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns = {"/main-servlet"})
@@ -32,14 +36,33 @@ public class MainServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String uri = req.getRequestURI();
-        String params = formatParams(req);
+        String params = new String();
+        ResultSet rs = DBAdmin.selectAllFromTable();
+        try {
+            while (rs.next()) {
+                String phoneNumber = rs.getString("PHONE_NUMBER");
+                String problemMessage = rs.getString("PROBLEM_MESSAGE");
+                params = "phoneNumber : " + phoneNumber + "\n" + "problemMessage : " + problemMessage;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
         resp.getWriter().write("doGet\n" + "URI: " + uri + "\n Params:\n" + params + "\n");
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String test = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-        System.out.println(test);
+        String uri = req.getRequestURI();
+        List<String> phoneAndMessage = splitParams(req);
+        System.out.println(phoneAndMessage.get(0));
+        System.out.println(phoneAndMessage.get(1));
+        try {
+            DBAdmin.insertIntoTable(phoneAndMessage.get(0), phoneAndMessage.get(1));
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        System.out.println("doPost\n" + "URI: " + uri);
     }
 
     private String formatParams(HttpServletRequest req) {
@@ -48,6 +71,21 @@ public class MainServlet extends HttpServlet {
                     String param = String.join("and ", stringEntry.getValue());
                     return stringEntry.getKey() + " => " + param;
                 }).collect(Collectors.joining("\n"));
+    }
+
+    private List<String> splitParams(HttpServletRequest req) throws IOException {
+        List<String> params = new ArrayList<>();
+        String test = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+
+        test = test.replace("\"","");
+        test = test.replace("{","");
+        test = test.replace("}","");
+
+        String[] split = test.split("(,)|(:)");
+
+        params.add(split[1]);
+        params.add(split[3]);
+        return params;
     }
 
     @Override

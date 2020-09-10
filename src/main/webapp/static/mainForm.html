@@ -34,11 +34,11 @@
         methods: {
             sendOnServer: function () {
                 axios.post(window.location.origin + "/servletExample/main-servlet", {
-                    method: 'POST',
-                    data: {
+                    /*method: 'POST',
+                    data: {*/
                         phoneNumber: this.phoneNumber,
                         message: this.message
-                    }
+                    //}
                 })
                 /*fetch(window.location.origin + "/servletExample/main-servlet", {
                     method: 'POST',
